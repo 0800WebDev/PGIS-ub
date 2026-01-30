@@ -13,7 +13,7 @@ app.use(
   })
 );
 
-const PASSWORD = "yourpasswordhere";
+const PASSWORD = "please_open";
 
 // Serve all files only if authenticated
 app.use((req, res, next) => {
