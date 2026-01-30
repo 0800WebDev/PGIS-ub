@@ -1,0 +1,35 @@
+KILLSWITCH
+
+if you have noticed the site suddendly saying: "This page is closing temporarily in (min) minutes and (sec) seconds" dont worry, there is no way to fix it and it is set for everyone using the site, it is only being used emergencies and will probbably return to normal after some time. if you have gotten a killswitch resently look below.
+last reason for killswitch: [testing], other common reasons: [testing, major update, major bug, huge misuse of site(not nessesarely you, and im talking huge).
+killswitch is not enabled
+
+__________________________________________________
+
+CONTACT
+my email is: spmspy0800@gmail.com i recogmend you send me an email there with the subject: "PGIS2(your problem)" you can also contact me on https://hi0800.wixsite.com/eghtvid/chat but again i recogmend sending an email
+
+__________________________________________________
+
+VERSION
+V = version
+First number = website/version/sequel
+Second number = how many games
+Third number = major updates
+Fourth number = small changes/bug fixes
+
+__________________________________________________
+
+
+
+made by 0800
+
+
+
+please do not use any of the code for this website in your own project, contact me(spmspy0800@gmail.com) if you want game code, or use iframes
+
+
+
+i get most of my games from https://docs.google.com/document/d/1_FmH3BlSBQI7FGgAQL59-ZPe8eCxs35wel6JUyVaG8Q/preview?pru=AAABmzfnWJI*ft1QkyLeWiRvuSaIG2pp2A&tab=t.15gnc7ih9cs6
+
+All these games’ rights go to their respective owners I do not claim to own any of these games

@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="minimal-ui, user-scalable=no, initial-scale=1, maximum-scale=1, width=device-width, viewport-fit=cover">
+    <title>SmashKarts</title>
+    <base href="https://smashkarts.io/">
+    <link rel="stylesheet" href="css/main.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html, body { width: 100%; height: 100%; overflow: hidden; }
+    </style>
+</head>
+<body>
+    <div id="mainContainer">
+        <div id="gameContainer">
+            <div id="gameCanvasWrapper">
+                <canvas id="gameCanvas"></canvas>
+            </div>
+            <div id="loader">
+                <img class="logo" src="images/smashkarts.png">
+                <div class="spinner"></div>
+                <div class="progress"><div class="full"></div></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- EXACT ORIGINAL SCRIPT ORDER -->
+    <script src="scripts/constants.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.9.3/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.9.3/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.9.3/firebase-database-compat.js"></script>
+    <script src="scripts/main.js"></script>
+    <script src="scripts/auth.js"></script>
+    <script src="scripts/shop.js"></script>
+    <script src="Build/76f034cff49013ce85bd6945ebf32347.loader.js"></script>
+
+    <script>
+        // Domain proxy ONLY - redirects GitHub to smashkarts.io
+        const rewriteURL = (url) => {
+            if (url.includes('cdn.jsdelivr.net/gh/Pok12d/ta@main/sma/')) {
+                return url.replace('cdn.jsdelivr.net/gh/Pok12d/ta@main/sma/', 'smashkarts.io/');
+            }
+            return url;
+        };
+
+        // Intercept requests
+        const origFetch = window.fetch;
+        window.fetch = (r, i) => {
+            if (typeof r === 'string') r = rewriteURL(r);
+            else if (r?.url) r = new Request(rewriteURL(r.url), r);
+            return origFetch(r, i);
+        };
+        XMLHttpRequest.prototype.open = (m, u, ...a) => {
+            XMLHttpRequest.prototype.open.call(this, m, rewriteURL(u), ...a);
+        };
+
+        // Unity config
+        const config = {
+            dataUrl: "Build/cde9b7051535319df292526442914c36.data.br",
+            frameworkUrl: "Build/ed690d1402dd39fcf7abb15b99effdea.framework.js.br",
+            codeUrl: "Build/250100c98afece1d27bb09b3a3d618ca.wasm.br",
+            streamingAssetsUrl: "StreamingAssets",
+            companyName: "TallTeam",
+            productName: "rr",
+            productVersion: "2.9.0"
+        };
+
+        // Start Unity when everything loads
+        window.addEventListener('load', () => {
+            createUnityInstance(document.getElementById('gameCanvas'), config);
+        });
+    </script>
+</body>
+</html>
+

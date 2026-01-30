@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html>
+    <head>
+<style>html, body {
+  margin: 0;
+  height: 100%;
+  overflow: hidden;
+}
+canvas {
+  max-width: 100%;
+}</style>
+ <script src="https://cdnjs.cloudflare.com/ajax/libs/dat-gui/0.7.7/dat.gui.min.js"></script>
+
+  <!-- GSAP -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    </head>
+    <body>
+        <canvas id="myCanvas"></canvas>
+        <script>// Environment Variables
+let updateFPS = 30;
+let showMouse = true;
+let count = 0;
+let bgColor = "black";
+
+// Controls
+const controls = {
+	showId: true,
+	showMap: false,
+};
+const gui = new dat.GUI();
+gui.add(controls, "showId");
+gui.add(controls, "showMap");
+
+//------ Vector 2D -------
+class Vec2 {
+	constructor(x, y) {
+		this.x = x || 0;
+		this.y = y || 0;
+	}
+	set(x, y) {
+		this.x = x;
+		this.y = y;
+	}
+	move(x, y) {
+		this.x += x;
+		this.y += y;
+	}
+	add(value) {
+		return new Vec2(this.x + value.x, this.y + value.y);
+	}
+	sub(value) {
+		return new Vec2(this.x - value.x, this.y - value.y);
+	}
+	mul(number) {
+		return new Vec2(this.x * number, this.y * number);
+	}
+	get length() {
+		return Math.sqrt(this.x * this.x + this.y * this.y);
+	}
+	set length(newValue) {
+		let temp = this.unit.mul(newValue);
+		this.set(temp.x, temp.y);
+	}
+	clone() {
+		return new Vec2(this.x, this.y);
+	}
+	toString() {
+		return `(${this.x}, ${this.y})`;
+	}
+	equal(compareElement) {
+		return this.x == compareElement.x && this.y == compareElement.y;
+	}
+	get angle() {
+		return Math.atan2(this.y, this.x);
+	}
+	get unit() {
+		return this.mul(1 / this.length);
+	}
+}
+
+//--- Canvas Selector ----
+const canvas = document.querySelector("#myCanvas");
+const ctx = canvas.getContext("2d");
+
+ctx.circle = function (value, radius) {
+	this.arc(value.x, value.y, radius, 0, Math.PI * 2);
+};
+ctx.line = function (value1, value2) {
+	this.moveTo(value1.x, value1.y);
+	this.lineTo(value2.x, value2.y);
+};
+
+// Agar.io Setting Start
+let global = {
+	scale: 1,
+	width: 4000,
+	height: 4000,
+	foodmax: 500,
+	playermax: 50,
+	collideFactor: 0,
+};
+
+function map(value, min, max, newMin, newMax) {
+	let len_1 = max - min,
+		len_2 = newMax - newMin;
+	let ratio = len_2 / len_1;
+	return (value - min) * ratio + newMin;
+}
+
+class Player {
+	constructor(args) {
+		let def = {
+			id: parseInt(Math.random() * 1000000),
+			p: new Vec2(),
+			v: new Vec2(
+				map(Math.random(), 0, 1, -5, 5),
+				map(Math.random(), 0, 1, -5, 5)
+			),
+			a: new Vec2(),
+			mass: 100,
+			living: true,
+			color: `hsl(${Math.random() * 360},60%,50%)`,
+			...args,
+		};
+		Object.assign(this, def);
+	}
+	draw() {
+		ctx.fillStyle = this.color;
+		ctx.beginPath();
+		ctx.circle(this.p, this.r);
+		ctx.fill();
+		if (this.type !== "food" && controls.showId) {
+			ctx.font = "10px Arial";
+			ctx.fillStyle = "#fff";
+			ctx.textAlign = "center";
+			ctx.fillText(parseInt(this.id), this.p.x, this.p.y);
+		}
+		if (this.lastTarget && controls.showId) {
+			ctx.font = "10px Arial";
+			ctx.fillStyle = "#fff";
+			ctx.textAlign = "center";
+			ctx.fillText(parseInt(this.lastTarget.id), this.p.x, this.p.y + 10);
+		}
+	}
+	update() {
+		this.p.move(this.v.x, this.v.y);
+		this.v.move(this.a.x, this.a.y);
+		this.a = this.a.mul(0.98);
+		if (this.mass < 0) this.living = false;
+		if (this.type === "food" && this.v !== 0) {
+			this.v.x *= 0.95;
+			this.v.y *= 0.95;
+		}
+		this.checkBoundary();
+	}
+	checkBoundary() {
+		if (this.p.x - this.r < -global.width / 2)
+			this.p.x = -global.width / 2 + this.r;
+		if (this.p.x + this.r > global.width / 2)
+			this.p.x = global.width / 2 - this.r;
+		if (this.p.y - this.r < -global.height / 2)
+			this.p.y = -global.height / 2 + this.r;
+		if (this.p.y + this.r > global.height / 2)
+			this.p.y = global.height / 2 - this.r;
+	}
+	eat(target) {
+		gsap.to(this, 0.1, { mass: this.mass + target.mass });
+		target.living = false;
+	}
+	isTarget(target) {
+		let result =
+			target.r < this.r * 0.9 && target.p.sub(this.p).length < 500;
+		return result;
+	}
+	get r() {
+		return Math.sqrt(this.mass);
+	}
+	get maxSpeed() {
+		return 35 / (1 + Math.log(this.r));
+	}
+}
+
+// Set Canvas
+initCanvas();
+function initCanvas() {
+	ww = canvas.width = window.innerWidth;
+	wh = canvas.height = window.innerHeight;
+}
+
+// Set Logic
+let players = [];
+let myPlayers = [];
+let canvasCenter = new Vec2(ww / 2, wh / 2);
+
+function init() {
+	for (let i = 0; i < 300; i++) {
+		players.push(
+			new Player({
+				mass: Math.random() * 1000 + 24,
+				p: new Vec2(
+					map(Math.random(), 0, 1, -global.width / 2, global.width / 2),
+					map(Math.random(), 0, 1, -global.height / 2, global.height / 2)
+				),
+			})
+		);
+	}
+	myPlayers.push(players[0]);
+}
+function scaleAnimation() {
+	let scale = 1 / Math.log(Math.sqrt(myPlayers[0].r / 4 + 2.4));
+	gsap.to(global, 2, { scale: scale });
+}
+function addFoodOrPlayer() {
+	if (
+		players.filter((player) => player.type === "food").length <
+		global.foodmax
+	) {
+		players.push(
+			new Player({
+				mass: 10,
+				p: new Vec2(
+					map(Math.random(), 0, 1, -global.width / 2, global.width / 2),
+					map(Math.random(), 0, 1, -global.height / 2, global.height / 2)
+				),
+				v: new Vec2(),
+				type: "food",
+			})
+		);
+	}
+	if (
+		players.filter((player) => player.type !== "food").length <
+		global.playermax
+	) {
+		players.push(
+			new Player({
+				mass: Math.random() * 1000 + 24,
+				p: new Vec2(
+					map(Math.random(), 0, 1, -global.width / 2, global.width / 2),
+					map(Math.random(), 0, 1, -global.height / 2, global.height / 2)
+				),
+			})
+		);
+	}
+}
+
+// Update Game Logic
+function update() {
+	let myPlayer = myPlayers[0];
+
+	players.forEach((player, pid) => {
+		if (player.living) {
+			player.update();
+
+			if (
+				(count + pid * 5) % 60 === 0 &&
+				player.id !== myPlayer.id &&
+        player.type !== "food"
+			) {
+				if (Math.random() < 0.2) {
+					player.lastTarget = null;
+					let angle = Math.PI * 2 * Math.random();
+					let len = player.maxSpeed;
+					let newV = new Vec2(
+						len * Math.cos(angle),
+						len * Math.sin(angle)
+					);
+					gsap.to(player.v, 0.1, newV);
+				}
+				if (Math.random() < 0.3) {
+					let targets = players
+						.filter((p) => player.isTarget(p))
+						.sort((p1, p2) => p2.mass - p1.mass)
+						.slice(0, 5);
+					if (player.type != "food" && player !== myPlayer) {
+						if (targets[0]) {
+							let delta = targets[0].p.sub(player.p);
+							let mm = delta.unit.mul(targets[0].maxSpeed * 0.8);
+							gsap.to(player.v, 0.24, { x: mm.x, y: mm.y });
+							player.lastTarget = targets[0];
+						}
+					}
+				}
+			} else {
+        if (player.lastTarget && player.lastTarget.living) {
+          let delta = player.lastTarget.p.sub(player.p);
+          let newV = delta.unit.mul(player.maxSpeed);
+          gsap.to(player.v, 0.2, { x: newV.x, y: newV.y });
+        }
+      }
+
+			players.forEach((player_2, pid_2) => {
+				if (
+					pid !== pid_2 &&
+					player.id !== player_2.id &&
+					player_2.living
+				) {
+					if (
+						player.r * 0.9 > player_2.r &&
+						player.p.sub(player_2.p).length - 10 <= player.r - player_2.r
+					)
+						player.eat(player_2);
+				}
+			});
+		}
+	});
+
+	myPlayers.forEach((mp_1, mp_1_id) => {
+		myPlayers.forEach((mp_2, mp_2_id) => {
+			if (mp_1_id !== mp_2_id && mp_1.living && mp_2.living) {
+				let delta = mp_2.p.sub(mp_1.p);
+				if (delta.length < mp_1.r + mp_2.r) {
+					let pan = delta.unit.mul(
+						global.collideFactor * (mp_1.r + mp_2.r)
+					);
+					mp_2.p = mp_1.p.add(pan);
+					mp_2.v = mp_1.v.clone();
+				}
+
+				delta = mp_2.p.sub(mp_1.p);
+				if (
+					global.collideFactor < 0.7 &&
+					delta.length < (mp_1.r + mp_2.r) * 0.6 &&
+					mp_2_id !== 0
+				) {
+					mp_1.mass += mp_2.mass;
+					mp_1.p = mp_1.p.add(mp_2.p).mul(0.5);
+					mp_2.living = false;
+				}
+			}
+		});
+	});
+
+	myPlayers.forEach((mp, mpid) => {
+		if (mpid != 0) {
+			let mpDelta = myPlayer.p.sub(mp.p);
+			mp.p = mp.p.add(
+				mpDelta.unit.mul(
+					(map(mpDelta.length, 0, 100, 0, 1) * 20) / Math.sqrt(mp.r)
+				)
+			);
+			let delta = mousePosition.sub(canvasCenter).mul(0.1);
+			if (delta.length > mp.maxSpeed) delta = delta.unit.mul(mp.maxSpeed);
+			mp.v = delta.add(mp.a);
+		}
+	});
+
+	let delta = mousePosition.sub(canvasCenter).mul(0.1);
+	let deltaLength = delta.length;
+	myPlayer.v =
+		deltaLength > myPlayer.maxSpeed
+			? delta.unit.mul(myPlayer.maxSpeed)
+			: delta;
+
+	players = players.filter((player) => player.living);
+	myPlayers = myPlayers.filter((player) => player.living);
+
+	if (myPlayers.length === 0)
+		myPlayers.push(players.filter((player) => player.type !== "food")[0]);
+}
+
+// Update Frame
+function draw() {
+	count++;
+	// Clear Background
+	ctx.fillStyle = bgColor;
+	ctx.fillRect(0, 0, ww, wh);
+	//------ Draw Here --------
+	let center = myPlayers[0].p;
+
+	ctx.save();
+	ctx.translate(ww / 2, wh / 2);
+	ctx.scale(global.scale, global.scale);
+	ctx.translate(-center.x, -center.y);
+
+	let gridWidth = 250,
+		gridHeight = 250,
+		gcount = global.width / gridWidth;
+	for (let i = -gcount / 2; i <= gcount / 2; i++) {
+		ctx.moveTo(i * gridWidth, -global.height / 2);
+		ctx.lineTo(i * gridWidth, global.height / 2);
+		ctx.moveTo(-global.width / 2, i * gridHeight);
+		ctx.lineTo(global.width / 2, i * gridHeight);
+	}
+	ctx.strokeStyle = `hsl(0 0% 100% / 0.4)`;
+	ctx.stroke();
+
+	[...players]
+		.sort((p1, p2) => p1.r - p2.r)
+		.forEach((player) => {
+			if (player.living) player.draw();
+		});
+	ctx.restore();
+
+	ctx.font = "20px Arial";
+	ctx.fillStyle = "#eee";
+	let score = myPlayers
+		.map((player) => player.mass)
+		.reduce((total, mass) => total + mass, 0);
+	ctx.fillText(`Score: ${parseInt(score)}`, 24, 26);
+	// ctx.fillText(`Collide: ${global.collideFactor}`, 24, 52);
+
+	if (controls.showMap) {
+		// Map
+		ctx.save();
+		ctx.translate(0, wh);
+		ctx.scale(1 / 30, 1 / 30);
+		ctx.translate(0, -global.height);
+		ctx.fillStyle = "rgba(255,255,255,0.2)";
+		ctx.fillRect(0, 0, global.width, global.height);
+		ctx.translate(global.width / 2, global.height / 2);
+
+		players.forEach((player) => {
+			if (player.type != "food") {
+				ctx.beginPath();
+				ctx.fillStyle = "#fff";
+				let r = 20;
+				if (myPlayers.map((mp) => mp.id).indexOf(player.id) !== -1) {
+					ctx.fillStyle = "red";
+					r = 100;
+				}
+				ctx.circle(player.p, r);
+				ctx.fill();
+			}
+		});
+
+		ctx.restore();
+	}
+
+	//------ Draw Mouse --------
+	ctx.fillStyle = "red";
+	ctx.beginPath();
+	ctx.circle(mousePosition, 3);
+	ctx.fill();
+
+	ctx.save();
+	ctx.beginPath();
+	ctx.translate(mousePosition.x, mousePosition.y);
+	ctx.strokeStyle = "red";
+	let length = 20;
+	ctx.line(new Vec2(-length, 0), new Vec2(length, 0));
+	ctx.fillText(mousePosition, 10, -10);
+	ctx.rotate(Math.PI / 2);
+	ctx.line(new Vec2(-length, 0), new Vec2(length, 0));
+	ctx.stroke();
+	ctx.restore();
+	//---------------------------
+
+	requestAnimationFrame(draw);
+	if (count % (60 / updateFPS) === 0) requestAnimationFrame(update);
+	if (count % 120 === 0) requestAnimationFrame(scaleAnimation);
+	requestAnimationFrame(addFoodOrPlayer);
+}
+
+function loaded() {
+	initCanvas();
+	init();
+	requestAnimationFrame(draw);
+}
+window.addEventListener("load", loaded);
+window.addEventListener("resize", initCanvas);
+
+// Mouse EventListener and Function
+let mousePosition = new Vec2(0, 0);
+let mousePositionDown = new Vec2(0, 0);
+let mousePositionUp = new Vec2(0, 0);
+
+window.addEventListener("mousemove", mousemove);
+window.addEventListener("mouseup", mouseup);
+window.addEventListener("mousedown", mousedown);
+
+function mousemove(e) {
+	mousePosition.set(e.x, e.y);
+}
+function mouseup(e) {
+	mousePosition.set(e.x, e.y);
+	mousePositionUp = mousePosition.clone();
+}
+function mousedown(e) {
+	mousePosition.set(e.x, e.y);
+	mousePositionDown = mousePosition.clone();
+}
+
+window.addEventListener("keydown", (e) => {
+	if (e.key == " ") {
+		let newBalls = [];
+		global.collideFactor = 1;
+		if (global.spiltTimer) {
+			clearTimeout(global.spiltTimer);
+		}
+		gsap.killTweensOf(global);
+
+		global.spiltTimer = setTimeout(() => {
+			gsap.to(global, 10, { collideFactor: 0 });
+		}, 8000);
+
+		myPlayers.forEach((mp) => {
+			if (mp.mass > 400 && myPlayers.length < 24) {
+				gsap.to(mp, 0.2, { mass: mp.mass / 2 });
+				let spiltSelf = new Player({
+					id: mp.id,
+					mass: mp.mass / 2,
+					p: mp.p.clone(),
+					v: mousePosition.sub(canvasCenter).unit.mul(mp.maxSpeed * 2),
+					a: mousePosition.sub(canvasCenter).unit.mul(mp.maxSpeed * 2),
+					color: mp.color,
+				});
+				newBalls.push(spiltSelf);
+			}
+		});
+		players = players.concat(newBalls);
+		myPlayers = myPlayers.concat(newBalls);
+	}
+	if (e.key == "w") {
+		myPlayers.forEach((mp) => {
+			if (mp.mass > 200) {
+				gsap.to(mp, 0.2, { mass: mp.mass - 100 });
+				let mouseDelta = mousePosition.sub(canvasCenter);
+				let mouseAngle = mouseDelta.angle;
+				let setPosDelta = mp.r + 15;
+				let newPosition = mp.p.add(
+					new Vec2(
+						setPosDelta * Math.cos(mouseAngle),
+						setPosDelta * Math.sin(mouseAngle)
+					)
+				);
+				let args = {
+					p: newPosition,
+					v: mp.v
+						.mul(1.5)
+						.add(mouseDelta.unit.mul(Math.random() * 5 + 10)),
+					mass: 81,
+					color: mp.color,
+					type: "food",
+				};
+				players.push(new Player(args));
+			}
+		});
+	}
+});</script>
+    </body>
+</html>

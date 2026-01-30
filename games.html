@@ -1,0 +1,215 @@
+<!doctype html> 
+<html>
+   <head>
+      
+
+      <title>PGIS 3 - games</title>
+      <link rel="icon" type="image/x-icon" href="https://i.postimg.cc/1XJnjRTF/0937a70d8c13420e9c4d8b0dc92bddaa-free-1.png">
+      <style> html, body { text-align: center; background-color: black; color: whitesmoke; } /* Container for the game divs */ .games-area {background-color: rgba(0,0,0,0.1); display: flex; justify-content: center; gap: 20px; flex-wrap: wrap; position: relative; z-index: 1; } /* Each game div itself */ .gamediv {   width: 200px;
+    height: 150px;
+    background-color: rgba(0, 0, 0, 0.3); /* semi-transparent black */
+    background-size: cover;
+    background-position: center;
+    cursor: auto;
+    border: 1px solid #444;
+    border-radius: 5px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    backdrop-filter: blur(2px); /* optional, makes it smoother */}
+     button { cursor: pointer;
+      background-color: #444;
+       color: whitesmoke;
+        border: none; }
+         button:hover { 
+            cursor: pointer;
+             background-color: lightgray; 
+             color: black; border: none; }
+              a { color: white; } /* Particle background container */ #particles-js {
+                 position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;       /* keep behind the games */
+    pointer-events: none; /* so clicks go through */
+    background: transparent; /* make sure it’s not black */}
+    
+    
+
+#search {
+    width: 250px;
+    padding: 10px 15px;
+    font-size: 16px;
+    border: 1px solid #555;
+    border-radius: 8px;
+    background-color: rgba(0, 0, 0, 0.6);
+    color: whitesmoke;
+    outline: none;
+    box-shadow: 0 0 5px rgba(255,255,255,0.2);
+    transition: all 0.3s ease;
+}
+
+#search::placeholder {
+    color: #aaa;
+}
+
+#search:focus {
+    border-color: #fff;
+    box-shadow: 0 0 10px rgba(255,255,255,0.5);
+    background-color: rgba(0,0,0,0.8);
+}
+</style>
+   </head>
+   <body>
+      <!-- Particle background --> 
+      <div id="particles-js"></div>
+      <div>
+         <h1>PGIS</h1>
+         <strong>games</strong> <br><br> <a href="/" style="color: white;">Back to Homepage</a> <br><br> <input type="text" id="search" placeholder="Search for games" /> <br><br> 
+      </div>
+      <div class="games-area">
+         <!--games area--> 
+         <div class="gamediv"><b>1v1lol</b><img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTSEbIjGbQ7kWQzBt3gyygxzuDLgzGukjbyEg&s" alt="1v1lol image" width="100px" height="100px"><a href="1v1lol/"><button>play</button></a></div>
+         <div class="gamediv"><b>Slope game</b><img src="https://img.slopeunblocked76.net/cdn-cgi/image/fit=cover,format=auto,metadata=none,quality=70,width=256/https://img.slopeunblocked76.net/games/slope-game/thumb.png" alt="slope image" width="100px" height="100px"><a href="slope/index.html"><button>play</button></a></div>
+         <div class="gamediv"><b>Roblox</b><img src="https://i.redd.it/is-that-the-old-roblox-logo-v0-8j4r1ks8nmic1.png?width=860&format=png&auto=webp&s=04cea48d576b5025ea9f481b50fc274ef560426c" alt="roblox image" width="100px" height="100px"><a href="roblox/index.html"><button>play</button></a></div>
+         <div class="gamediv"><b>Smash karts(might not work)</b><img src="https://imgs.crazygames.com/smash-karts_1x1/20251204152019/smash-karts_1x1-cover?format=auto&quality=100&metadata=none&width=1200" alt="slope image" width="100px" height="100px"><a href="smash-karts/index.html"><button>play</button></a></div>
+         <div class="gamediv"><b>Bubble Shooter</b><img src="https://i.postimg.cc/6pJT8Kr0/Screenshot-2025-12-08-11-17-03.png" alt="bubble image" width="100px" height="100px"><a href="bubbleshoot/index.html"><button>play</button></a></div>
+         <div class="gamediv"><b>2048</b><img src="https://specials.manoramaonline.com/News/2022/manorama-promotions/img/2048-game.jpg" alt="2048 image" width="100px" height="100px"><a href="2048/index.html"><button>play</button></a></div>
+         <div class="gamediv"><b>Tetris</b><img src="https://upload.wikimedia.org/wikipedia/commons/4/46/Tetris_logo.png" alt="tetris image" width="100px" height="100px"><a href="tetris/index.html"><button>play</button></a></div>
+         <div class="gamediv"><b>Agar.io</b><img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRyBIAwleB-WyuRLxixcHaBM5O1ncVkdhMcQQ&s" alt="agar.io image" width="100px" height="100px"><a href="agario/index.html"><button>play</button></a></div>
+         <div class="gamediv"><b>basket random</b><img src="https://play-lh.googleusercontent.com/gP8T5Z1O-ngxIloiwcBZzrzyLPYDp0R_1BDNKUDZboIRPVImeyWI8-7aExvB9gAGNKc" alt="basket random image" width="100px" height="100px"><a href="basket/"><button>play</button></a></div>
+         <div class="gamediv"><b>Snow Rider 3D</b><img src="https://geometrydashfullversion.io/data/image/game/snow-rider-3d/snow-rider-3d.jpg" alt="snowrider image" width="100px" height="100px"><a href="snowride/index.html"><button>play</button></a></div>
+         <div class="gamediv"><b>Subway Surfers</b><img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ_jA-5LBKS3_SEQO_ktp_KjdTIlt2ekXlvWw&s" alt="subway surfers image" width="100px" height="100px"><a href="subwaysurf/index.html"><button>play</button></a></div>
+         <div class="gamediv"><b>moto X3m</b><img src="https://img.poki-cdn.com/cdn-cgi/image/q=78,scq=50,width=314,height=314,fit=cover,f=auto/3f8a297822df891a1c158576b6461014/moto-x3m-spooky-land.png" alt="moto X3m image" width="100px" height="100px"><a href="motox3m/index.html"><button>play</button></a></div>
+         <div class="gamediv"><b>Drift Hunters</b><img src="https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/1c/e2/e0/1ce2e0b0-f686-364a-ec33-e7d3705e7a9a/AppIcon-0-0-1x_U007emarketing-0-7-0-85-220.png/256x256bb.jpg" alt="Drift Hunters image" width="100px" height="100px"><a href="drifthunt/index.html"><button>play</button></a></div>
+         <div class="gamediv"><b>Minecraft</b><img src="https://taproad.io/data/image/game/eaglercraft-unblocked-game.jpg" alt="eaglercraft image" width="100px" height="100px"><a href="minecraft/index.html"><button>play</button></a></div>
+         <div class="gamediv"><b>Stickman Hook</b><img src="https://melon-sandbox.io/data/image/game/StickmanHook.jpeg" alt="stickman hook image" width="100px" height="100px"><a href="stickman/index.html"><button>play</button></a></div>
+         <div class="gamediv"><b>Geometry Dash</b><img src="https://play-lh.googleusercontent.com/p7kWbWBFxQIrzolEqiV5uSvctLeyssZvBV7UBOX29wzZI52IdcSs4qCB_zsQJL1mt9A" alt="Geometry dash image" width="100px" height="100px"><a href="geometry/index.html"><button>play</button></a></div>
+         <div class="gamediv"><b>Cookie Clicker</b><img src="https://i.postimg.cc/HkKLcCxs/Screenshot-2025-12-11-07-37-25.png" alt="cookie clicker image" width="100px" height="100px"><a href="cookieclicker/index.html"><button>play</button></a></div>
+         <div class="gamediv"><b>Pac-Man</b><img src="https://upload.wikimedia.org/wikipedia/fr/thumb/a/a2/Pac-Man_Logo.svg/langfr-1920px-Pac-Man_Logo.svg.png" alt="pacman image" width="100px" height="100px"><a href="pacman/index.html"><button>play</button></a></div>
+         <div class="gamediv"><b>Fireboy and Watergirl</b><img src="https://i.postimg.cc/j2JFGwwr/Screenshot-2025-12-11-16-09-30.png" alt="firewater image" width="100px" height="100px"><a href="firewater/"><button>play</button></a></div>
+         <div class="gamediv"><b>10 minutes till dawn</b><img src="https://i.postimg.cc/rsmfkdKn/Screenshot-2025-12-11-16-25-01.png" alt="10mindawn image" width="100px" height="100px"><a href="10mintildawn/"><button>play</button></a></div>
+         <div class="gamediv"><b>99 nights in the forest</b><img src="https://i.postimg.cc/VkmvpwS0/Screenshot-2025-12-12-08-45-00.png" alt="99nights image" width="100px" height="100px"><a href="99nights/"><button>play</button></a></div>
+         <div class="gamediv"><b>Among Us</b><img src="https://i.postimg.cc/tgRNMbzg/Screenshot-2025-12-12-19-44-34.png" alt="among us image" width="100px" height="100px"><a href="amongus/"><button>play</button></a></div>
+         <div class="gamediv"><b>Baldis Basics</b><img src="https://static.wikitide.net/baldisbasicswiki/2/29/Bald_Frown0000.png" alt="baldis basics image" width="100px" height="100px"><a href="baldisbasics/"><button>play</button></a></div>
+         <div class="gamediv"><b>Tunnelrush</b><img src="https://i.postimg.cc/Rh0cMtXs/Screenshot-2025-12-15-07-25-07.png" alt="tunnelrush image" width="100px" height="100px"><a href="tunnelrush/"><button>play</button></a></div>
+         <div class="gamediv"><b>Tap Road</b><img src="https://i.postimg.cc/xT2PJkqV/Screenshot-2025-12-15-07-36-44.png" alt="tap road image" width="100px" height="100px"><a href="taproad/"><button>play</button></a></div>
+         <div class="gamediv"><b>Suika Game</b><img src="https://i.postimg.cc/VkfZ5zFj/Screenshot-2025-12-15-09-31-56.png" alt="suika game image" width="100px" height="100px"><a href="suikagame/"><button>play</button></a></div>
+         <div class="gamediv"><b>Run3</b><img src="https://i.postimg.cc/zBfYZnyp/Screenshot-2025-12-15-09-55-04.png" alt="run3 image" width="100px" height="100px"><a href="run3"><button>play</button></a></div>
+         <div class="gamediv"><b>HTML Rocket League</b><img src="https://i.postimg.cc/P5Xms4bj/Screenshot-2025-12-15-10-31-44.png" alt="rocket league image" width="100px" height="100px"><a href="rocketleague/"><button>play</button></a></div>
+         <div class="gamediv"><b>Retro Bowl</b><img src="https://i.postimg.cc/65dD19cn/Screenshot-2025-12-15-10-37-16.png" alt="retro bowl image" width="100px" height="100px"><a href="retrobowl/index.html"><button>play</button></a></div>
+         <div class="gamediv"><b>2D shooting</b><img src="https://i.postimg.cc/V6zNPQXW/7ad210998816426cb8bd123081203109-free.png" alt="2d shooting image(no image)" width="100px" height="100px"><a href="2dshooting/"><button>play</button></a></div>
+         <div class="gamediv"><b>Soccer Random</b><img src="https://i.postimg.cc/hvFYbN9K/Screenshot-2025-12-15-16-23-53.png" alt="soccer random image" width="100px" height="100px"><a href="soccerrandom/"><button>play</button></a></div>
+         <div class="gamediv"><b>Crossy Road</b><img src="https://i.postimg.cc/g2PZz9vg/Screenshot-2025-12-16-08-00-18.png" alt="crossy road image" width="100px" height="100px"><a href="crossyroad/"><button>play</button></a></div>
+         <div class="gamediv"><b>Paper.io</b><img src="https://i.postimg.cc/V6zNPQXW/7ad210998816426cb8bd123081203109-free.png" alt="paper.io image" width="100px" height="100px"><a href="paperio/"><button>play</button></a></div>
+         <div class="gamediv"><b>Grow A Garden</b><img src="https://i.postimg.cc/HLQdMQTL/Screenshot-2025-12-18-08-52-27.png" alt="grow a garden image" width="100px" height="100px"><a href="GrowAGarden/"><button>play</button></a></div>
+         <div class="gamediv"><b>Steal A Brainrot</b><img src="https://i.postimg.cc/V6zNPQXW/7ad210998816426cb8bd123081203109-free.png" alt="steal a brainrot image" width="100px" height="100px"><a href="stealabrainrot"><button>play</button></a></div>
+         <div class="gamediv"><b>Grand theft auto</b><img src="https://i.postimg.cc/FFSZTkvf/Screenshot-2026-01-09-08-56-35.png" alt="GTA" width="100px" height="100px"><a href="GTA"><button>play</button></a></div>
+         <div class="gamediv"><b>Plinko</b><img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRaO0xUw8N6ZUtsWm0DQ1xPdKbJQRLexfOqjA&s" alt="plinko" width="100px" height="100px"><a href="plinko"><button>play</button></a></div>
+         <div class="gamediv"><b>Police pursuit</b><img src="https://i.postimg.cc/GhYXpq8Y/Screenshot-2026-01-13-09-38-24.png" alt="police pursuit" width="100px" height="100px"><a href="policepursuit"><button>play</button></a></div>
+         <div class="gamediv"><b>Clash Of Vikings</b><img src="https://static.vecteezy.com/system/resources/previews/056/677/588/non_2x/elegant-minimalist-3d-cartoon-viking-warrior-illustration-professional-png.png" alt="clash of vikings" width="100px" height="100px"><a href="clashofvikings"><button>play</button></a></div>
+         <div class="gamediv"><b>Doom</b><img src="https://www.gamereactor.no/media/28/_3112893.png" alt="doom" width="100px" height="100px"><a href="doom"><button>play</button></a></div>
+         <div class="gamediv"><b>Donkey Kong</b><img src="https://i.postimg.cc/kghJMN2w/Skjermbilde-2026-01-16-192039.png" alt="donkeykong" width="100px" height="100px"><a href="donkeykong"><button>play</button></a></div>
+         <div class="gamediv"><b>slither.io</b><img src="https://i.postimg.cc/hvnc3Y90/Screenshot-2026-01-18-13-47-53.png" alt="slither.io" width="100px" height="100px"><a href="slitherio"><button>play</button></a></div>
+          <div class="gamediv"><b>Speed Per Click</b><img src="https://i.postimg.cc/t4BdRQJs/Screenshot-2026-01-18-13-57-20.png" alt="speed per click" width="100px" height="100px"><a href="speedperclick"><button>play</button></a></div>
+         <div class="gamediv"><b>UNO</b><img src="https://i.postimg.cc/ydQ20rLN/Screenshot-2026-01-18-14-05-35.png" alt="uno" width="100px" height="100px"><a href="uno"><button>play</button></a></div>
+         <div class="gamediv"><b>Snowball.io</b><img src="" alt="NO IMAGE" width="100px" height="100px"><a href="snowballio"><button>play</button></a></div>
+          <div class="gamediv"><b>Ragdoll Archers</b><img src="" alt="NO IMAGE" width="100px" height="100px"><a href="ragdollarchers"><button>play</button></a></div>
+          <div class="gamediv"><b>Rooftop Snipers</b><img src="" alt="NO IMAGE" width="100px" height="100px"><a href="rooftopsnipers"><button>play</button></a></div>
+         <div class="gamediv"><b>Guess Their Answer</b><img src="" alt="NO IMAGE" width="100px" height="100px"><a href="guesstheiranswer"><button>play</button></a></div>
+      </div>
+      <script src="killSwitch.js"></script><script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script> <script>
+         // GHUB-style particles with cursor fix
+particlesJS('particles-js', {
+  "particles": {
+    "number": {
+      "value": 100,
+      "density": { "enable": true, "value_area": 800 }
+    },
+    "color": { "value": "#ffffff" },
+    "shape": { "type": "circle", "stroke": { "width": 0 } },
+    "opacity": {
+      "value": 0.08,
+      "random": true,
+      "anim": { "enable": true, "speed": 1, "opacity_min": 0.3, "sync": false }
+    },
+    "size": {
+      "value": 3,
+      "random": true,
+      "anim": { "enable": true, "speed": 2, "size_min": 0.5, "sync": false }
+    },
+    "line_linked": {
+      "enable": true,
+      "distance": 150,
+      "color": "#ffffff",
+      "opacity": 0.4,
+      "width": 1
+    },
+    "move": {
+      "enable": true,
+      "speed": 1.5,
+      "direction": "none",
+      "straight": false,
+      "out_mode": "out"
+    }
+  },
+  "interactivity": {
+    "detect_on": "window", // ← cursor now works over all elements
+    "events": {
+      "onhover": { "enable": true, "mode": "repulse" },
+      "onclick": { "enable": false }
+    },
+    "modes": {
+      "repulse": { "distance": 120, "duration": 0.5 }
+    }
+  },
+  "retina_detect": true
+});
+
+      </script> 
+      <script>
+const searchInput = document.getElementById('search');
+const gameDivs = document.querySelectorAll('.gamediv');
+
+searchInput.addEventListener('input', () => {
+    const query = searchInput.value.toLowerCase();
+
+    gameDivs.forEach(div => {
+        const gameName = div.querySelector('b').textContent.toLowerCase();
+        if (gameName.includes(query) || query === '') {
+            div.style.display = 'flex'; // show matching games
+        } else {
+            div.style.display = 'none'; // hide non-matching games
+        }
+    });
+});
+</script>
+
+   </body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
