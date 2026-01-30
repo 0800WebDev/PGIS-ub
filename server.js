@@ -30,6 +30,7 @@ app.get("/", (req, res) => {
   } else {
     res.send(`
       <form method="POST" action="/login">
+      <strong>Password is "please_open"</strong>
         <input type="password" name="password" placeholder="Enter password" />
         <button>Enter</button>
       </form>
