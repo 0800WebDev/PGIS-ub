@@ -84,7 +84,7 @@
 
   
 <h1> UB </h1>
-<div id="content">Loading index.html...</div>
+<div id="content">Loading page...</div>
 <script>
 function closeUbPopup() {
     const popup = document.getElementById('ub-popup-overlay');
@@ -93,88 +93,117 @@ function closeUbPopup() {
 </script>
 
 <script>
-const USER = "0800WebDev";        // GitHub username
-const REPO = "PGIS";       // Repo name
-const BRANCH = "main";          // Branch
-const HOSTED_IFRAME = "https://pgis.onrender.com"; // Hosted server for iframe content
+<script>
+const USER = "0800WebDev";
+const REPO = "PGIS";
+const BRANCH = "main";
+const HOSTED_IFRAME = "https://pgis.onrender.com";
+
 const baseRawURL = `https://raw.githubusercontent.com/${USER}/${REPO}/${BRANCH}/`;
 const contentDiv = document.getElementById("content");
 
-// ===== Load any page from GitHub dynamically =====
+let currentPagePath = "index.html";
+
+// ===== Resolve relative paths properly =====
+function resolvePath(from, to) {
+  if (to.startsWith("/")) return to.slice(1);
+  if (to.includes("://")) return to;
+
+  const base = from.split("/").slice(0, -1);
+  const parts = to.split("/");
+
+  for (const part of parts) {
+    if (part === "." || part === "") continue;
+    if (part === "..") base.pop();
+    else base.push(part);
+  }
+
+  return base.join("/");
+}
+
+// ===== Load page =====
 async function loadPage(pagePath) {
   try {
     if (pagePath.startsWith("/")) pagePath = pagePath.slice(1);
-    const fileURL = baseRawURL + pagePath;
-    const htmlText = await (await fetch(fileURL)).text();
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(htmlText, "text/html");
+    currentPagePath = pagePath;
 
-    // Clear old content
+    const fileURL = baseRawURL + pagePath;
+    const res = await fetch(fileURL);
+    if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
+
+    const htmlText = await res.text();
+    const doc = new DOMParser().parseFromString(htmlText, "text/html");
+
     contentDiv.innerHTML = "";
 
-    // Inject body content (excluding scripts)
+    // Inject body
     doc.body.childNodes.forEach(node => {
       if (node.tagName === "SCRIPT") return;
       contentDiv.appendChild(document.importNode(node, true));
     });
 
-    // Inject <style> tags
-    doc.querySelectorAll("style").forEach(styleTag => {
-      const newStyle = document.createElement("style");
-      newStyle.textContent = styleTag.textContent;
-      document.head.appendChild(newStyle);
+    // Styles
+    doc.querySelectorAll("style").forEach(s => {
+      const ns = document.createElement("style");
+      ns.textContent = s.textContent;
+      document.head.appendChild(ns);
     });
 
-    // Inject <link rel="stylesheet">
     doc.querySelectorAll('link[rel="stylesheet"]').forEach(link => {
-      const newLink = document.createElement("link");
-      newLink.rel = "stylesheet";
-      newLink.href = baseRawURL + link.getAttribute("href");
-      document.head.appendChild(newLink);
+      const nl = document.createElement("link");
+      nl.rel = "stylesheet";
+      nl.href = baseRawURL + resolvePath(pagePath, link.getAttribute("href"));
+      document.head.appendChild(nl);
     });
 
-    // Inject <script> tags
+    // Scripts
     doc.querySelectorAll("script").forEach(script => {
-      const newScript = document.createElement("script");
-      if (script.src) newScript.src = baseRawURL + script.getAttribute("src");
-      else newScript.textContent = script.textContent;
-      document.body.appendChild(newScript);
+      const ns = document.createElement("script");
+      if (script.src) {
+        ns.src = baseRawURL + resolvePath(pagePath, script.getAttribute("src"));
+      } else {
+        ns.textContent = script.textContent;
+      }
+      document.body.appendChild(ns);
     });
 
-    // Fix relative images
+    // Images
     contentDiv.querySelectorAll("img").forEach(img => {
-      if (!img.src.includes("://")) img.src = baseRawURL + img.getAttribute("src");
-    });
-
-    // ===== Intercept internal links for SPA navigation =====
-    contentDiv.querySelectorAll("a").forEach(a => {
-      const href = a.getAttribute("href");
-      if (!href) return;
-      if (href.startsWith("/") || !href.includes("://")) {
-        a.addEventListener("click", e => {
-          e.preventDefault();
-          loadPage(href);
-        });
+      const src = img.getAttribute("src");
+      if (src && !src.includes("://")) {
+        img.src = baseRawURL + resolvePath(pagePath, src);
       }
     });
 
-    // ===== Rewrite iframes to hosted server =====
+    // Links
+    contentDiv.querySelectorAll("a").forEach(a => {
+      const href = a.getAttribute("href");
+      if (!href || href.includes("://")) return;
+
+      a.addEventListener("click", e => {
+        e.preventDefault();
+        loadPage(resolvePath(currentPagePath, href));
+      });
+    });
+
+    // Iframes → hosted server
     contentDiv.querySelectorAll("iframe").forEach(iframe => {
       const src = iframe.getAttribute("src");
-      if (!src) return;
-      if (src.startsWith("/")) {
-        iframe.src = HOSTED_IFRAME + src;
+      if (src && !src.includes("://")) {
+        iframe.src = HOSTED_IFRAME + "/" + resolvePath(currentPagePath, src);
       }
     });
 
   } catch (err) {
-    contentDiv.innerHTML = `Failed to load ${pagePath}: ${err}`;
+    contentDiv.innerHTML = `<pre>Load error: ${err.message}</pre>`;
     console.error(err);
   }
 }
 
-// ===== Load index.html by default =====
+// Start
 loadPage("ub.html");
+</script>
+
 </script>
 
 
