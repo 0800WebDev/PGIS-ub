@@ -95,115 +95,121 @@ function closeUbPopup() {
   
 
 <script>
-const USER = "0800WebDev";
-const REPO = "PGIS";
-const BRANCH = "main";
+const USER = "800WebDev";       // GitHub username
+const REPO = "PGIS";      // Repo name
+const BRANCH = "main";         // Branch
 const HOSTED_IFRAME = "https://pgis.onrender.com";
 
 const baseRawURL = `https://raw.githubusercontent.com/${USER}/${REPO}/${BRANCH}/`;
 const contentDiv = document.getElementById("content");
+if (!contentDiv) throw new Error("#content div missing");
 
 let currentPagePath = "index.html";
 
-// ===== Resolve relative paths properly =====
 function resolvePath(from, to) {
-  if (to.startsWith("/")) return to.slice(1);
+  if (!to) return null;
   if (to.includes("://")) return to;
+  if (to.startsWith("/")) return to.slice(1); // we’ll handle raw URL in links
 
   const base = from.split("/").slice(0, -1);
-  const parts = to.split("/");
-
-  for (const part of parts) {
+  for (const part of to.split("/")) {
     if (part === "." || part === "") continue;
     if (part === "..") base.pop();
     else base.push(part);
   }
-
   return base.join("/");
 }
 
-// ===== Load page =====
 async function loadPage(pagePath) {
   try {
-    if (pagePath.startsWith("/")) pagePath = pagePath.slice(1);
+    pagePath = pagePath.replace(/^\/+/, "");
     currentPagePath = pagePath;
 
-    const fileURL = baseRawURL + pagePath;
-    const res = await fetch(fileURL);
-    if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
+    const url = baseRawURL + pagePath;
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`HTML ${res.status}: ${pagePath}`);
 
-    const htmlText = await res.text();
-    const doc = new DOMParser().parseFromString(htmlText, "text/html");
+    const html = await res.text();
+    const doc = new DOMParser().parseFromString(html, "text/html");
 
     contentDiv.innerHTML = "";
 
-    // Inject body
-    doc.body.childNodes.forEach(node => {
-      if (node.tagName === "SCRIPT") return;
-      contentDiv.appendChild(document.importNode(node, true));
+    // Inject body (no scripts)
+    [...doc.body.children].forEach(el => {
+      if (el.tagName !== "SCRIPT") contentDiv.appendChild(document.importNode(el, true));
     });
 
-    // Styles
+    // Inject styles
     doc.querySelectorAll("style").forEach(s => {
       const ns = document.createElement("style");
       ns.textContent = s.textContent;
       document.head.appendChild(ns);
     });
 
-    doc.querySelectorAll('link[rel="stylesheet"]').forEach(link => {
+    doc.querySelectorAll('link[rel="stylesheet"]').forEach(l => {
       const nl = document.createElement("link");
       nl.rel = "stylesheet";
-      nl.href = baseRawURL + resolvePath(pagePath, link.getAttribute("href"));
+      nl.href = baseRawURL + resolvePath(pagePath, l.getAttribute("href"));
       document.head.appendChild(nl);
     });
 
-    // Scripts
-    doc.querySelectorAll("script").forEach(script => {
-      const ns = document.createElement("script");
-      if (script.src) {
-        ns.src = baseRawURL + resolvePath(pagePath, script.getAttribute("src"));
-      } else {
-        ns.textContent = script.textContent;
+    // Inject scripts
+    doc.querySelectorAll("script").forEach(s => {
+      try {
+        const ns = document.createElement("script");
+        if (s.src && !s.src.includes("://")) {
+          ns.src = baseRawURL + resolvePath(pagePath, s.getAttribute("src"));
+        } else {
+          ns.textContent = s.textContent;
+        }
+        document.body.appendChild(ns);
+      } catch(e) {
+        console.warn("Skipped script error:", e);
       }
-      document.body.appendChild(ns);
     });
 
     // Images
     contentDiv.querySelectorAll("img").forEach(img => {
       const src = img.getAttribute("src");
-      if (src && !src.includes("://")) {
-        img.src = baseRawURL + resolvePath(pagePath, src);
-      }
+      if (src && !src.includes("://")) img.src = baseRawURL + resolvePath(pagePath, src);
     });
 
-    // Links
+    // Links — rewrite so links starting with / load from GitHub
     contentDiv.querySelectorAll("a").forEach(a => {
       const href = a.getAttribute("href");
-      if (!href || href.includes("://")) return;
+      if (!href) return;
 
-      a.addEventListener("click", e => {
+      a.onclick = e => {
         e.preventDefault();
-        loadPage(resolvePath(currentPagePath, href));
-      });
+        // If href starts with /, fetch from GitHub
+        if (href.startsWith("/")) {
+          loadPage(href.slice(1)); // remove leading slash
+        } else if (!href.includes("://")) {
+          // Relative link — resolve normally
+          loadPage(resolvePath(currentPagePath, href));
+        } else {
+          // Absolute external link — open normally
+          window.location.href = href;
+        }
+      };
     });
 
     // Iframes → hosted server
-    contentDiv.querySelectorAll("iframe").forEach(iframe => {
-      const src = iframe.getAttribute("src");
-      if (src && !src.includes("://")) {
-        iframe.src = HOSTED_IFRAME + "/" + resolvePath(currentPagePath, src);
-      }
+    contentDiv.querySelectorAll("iframe").forEach(f => {
+      const src = f.getAttribute("src");
+      if (src && !src.includes("://")) f.src = HOSTED_IFRAME + "/" + resolvePath(currentPagePath, src);
     });
 
-  } catch (err) {
-    contentDiv.innerHTML = `<pre>Load error: ${err.message}</pre>`;
-    console.error(err);
+  } catch(err) {
+    contentDiv.innerHTML = `<pre>LOAD ERROR:\n${err.message}</pre>`;
+    console.warn(err);
   }
 }
 
-// Start
+// Start with index.html
 loadPage("ub.html");
 </script>
+
 
 
 </body>
