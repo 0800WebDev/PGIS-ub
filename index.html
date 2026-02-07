@@ -95,21 +95,22 @@ function closeUbPopup() {
   
 
 <script>
-const USER = "800WebDev";       // GitHub username
-const REPO = "PGIS";      // Repo name
-const BRANCH = "main";         // Branch
+/* ================= CONFIG ================= */
+const USER = "0800WebDev";          // GitHub username
+const REPO = "PGIS";               // Repo name
+const BRANCH = "main";             // Branch
 const HOSTED_IFRAME = "https://pgis.onrender.com";
+/* ========================================== */
 
 const baseRawURL = `https://raw.githubusercontent.com/${USER}/${REPO}/${BRANCH}/`;
 const contentDiv = document.getElementById("content");
 if (!contentDiv) throw new Error("#content div missing");
 
-let currentPagePath = "index.html";
-
+/* ---------- PATH RESOLVER ---------- */
 function resolvePath(from, to) {
   if (!to) return null;
   if (to.includes("://")) return to;
-  if (to.startsWith("/")) return to.slice(1); // we’ll handle raw URL in links
+  if (to.startsWith("/")) return to.slice(1);
 
   const base = from.split("/").slice(0, -1);
   for (const part of to.split("/")) {
@@ -120,32 +121,32 @@ function resolvePath(from, to) {
   return base.join("/");
 }
 
+/* ---------- MAIN LOADER ---------- */
 async function loadPage(pagePath) {
   try {
     pagePath = pagePath.replace(/^\/+/, "");
     currentPagePath = pagePath;
 
-    const url = baseRawURL + pagePath;
-    const res = await fetch(url);
+    const res = await fetch(baseRawURL + pagePath);
     if (!res.ok) throw new Error(`HTML ${res.status}: ${pagePath}`);
-
     const html = await res.text();
     const doc = new DOMParser().parseFromString(html, "text/html");
 
     contentDiv.innerHTML = "";
 
-    // Inject body (no scripts)
+    // Body content (skip scripts)
     [...doc.body.children].forEach(el => {
       if (el.tagName !== "SCRIPT") contentDiv.appendChild(document.importNode(el, true));
     });
 
-    // Inject styles
+    // Inject <style>
     doc.querySelectorAll("style").forEach(s => {
       const ns = document.createElement("style");
       ns.textContent = s.textContent;
       document.head.appendChild(ns);
     });
 
+    // Inject <link rel="stylesheet">
     doc.querySelectorAll('link[rel="stylesheet"]').forEach(l => {
       const nl = document.createElement("link");
       nl.rel = "stylesheet";
@@ -153,7 +154,7 @@ async function loadPage(pagePath) {
       document.head.appendChild(nl);
     });
 
-    // Inject scripts
+    // Inject scripts (ignore errors)
     doc.querySelectorAll("script").forEach(s => {
       try {
         const ns = document.createElement("script");
@@ -174,21 +175,18 @@ async function loadPage(pagePath) {
       if (src && !src.includes("://")) img.src = baseRawURL + resolvePath(pagePath, src);
     });
 
-    // Links — rewrite so links starting with / load from GitHub
+    // Links — GitHub repo for paths starting with /
     contentDiv.querySelectorAll("a").forEach(a => {
       const href = a.getAttribute("href");
       if (!href) return;
 
       a.onclick = e => {
         e.preventDefault();
-        // If href starts with /, fetch from GitHub
         if (href.startsWith("/")) {
-          loadPage(href.slice(1)); // remove leading slash
+          loadPage(href.slice(1));
         } else if (!href.includes("://")) {
-          // Relative link — resolve normally
           loadPage(resolvePath(currentPagePath, href));
         } else {
-          // Absolute external link — open normally
           window.location.href = href;
         }
       };
@@ -206,8 +204,11 @@ async function loadPage(pagePath) {
   }
 }
 
-// Start with index.html
-loadPage("ub.html");
+/* ---------- DYNAMIC STARTER PAGE ---------- */
+const urlPath = window.location.pathname.slice(1);
+const starterPage = urlPath ? urlPath : "ub.html";
+let currentPagePath = starterPage;
+loadPage(starterPage);
 </script>
 
 
