@@ -125,6 +125,11 @@ function resolvePath(from, to) {
 async function loadPage(pagePath) {
   try {
     pagePath = pagePath.replace(/^\/+/, "");
+
+    // ✅ Add this: if path ends with / or has no .html, append index.html
+    if (pagePath.endsWith("/")) pagePath += "index.html";
+    else if (!pagePath.includes(".")) pagePath += "/index.html";
+
     currentPagePath = pagePath;
 
     const res = await fetch(baseRawURL + pagePath);
@@ -133,6 +138,8 @@ async function loadPage(pagePath) {
     const doc = new DOMParser().parseFromString(html, "text/html");
 
     contentDiv.innerHTML = "";
+
+    // …rest of your loader code stays the same…
 
     // Body content (skip scripts)
     [...doc.body.children].forEach(el => {
