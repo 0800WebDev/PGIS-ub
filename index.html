@@ -94,80 +94,103 @@ function closeUbPopup() {
 
 <script>
 <script>
+/* ================= CONFIG ================= */
 const USER = "0800WebDev";
 const REPO = "PGIS";
 const BRANCH = "main";
 const HOSTED_IFRAME = "https://pgis.onrender.com";
+/* ========================================== */
 
 const baseRawURL = `https://raw.githubusercontent.com/${USER}/${REPO}/${BRANCH}/`;
+
 const contentDiv = document.getElementById("content");
+if (!contentDiv) {
+  document.body.innerHTML = "<pre>ERROR: #content div missing</pre>";
+  throw new Error("Missing #content");
+}
 
 let currentPagePath = "index.html";
 
-// ===== Resolve relative paths properly =====
+/* ---------- PATH RESOLVER ---------- */
 function resolvePath(from, to) {
-  if (to.startsWith("/")) return to.slice(1);
+  if (!to) return null;
   if (to.includes("://")) return to;
+  if (to.startsWith("/")) return to.slice(1);
 
   const base = from.split("/").slice(0, -1);
-  const parts = to.split("/");
-
-  for (const part of parts) {
+  for (const part of to.split("/")) {
     if (part === "." || part === "") continue;
     if (part === "..") base.pop();
     else base.push(part);
   }
-
   return base.join("/");
 }
 
-// ===== Load page =====
+/* ---------- MAIN LOADER ---------- */
 async function loadPage(pagePath) {
   try {
-    if (pagePath.startsWith("/")) pagePath = pagePath.slice(1);
+    pagePath = pagePath.replace(/^\/+/, "");
     currentPagePath = pagePath;
 
-    const fileURL = baseRawURL + pagePath;
-    const res = await fetch(fileURL);
-    if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
+    const url = baseRawURL + pagePath;
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`HTML ${res.status}: ${pagePath}`);
 
-    const htmlText = await res.text();
-    const doc = new DOMParser().parseFromString(htmlText, "text/html");
+    const html = await res.text();
+    const doc = new DOMParser().parseFromString(html, "text/html");
 
     contentDiv.innerHTML = "";
 
-    // Inject body
-    doc.body.childNodes.forEach(node => {
-      if (node.tagName === "SCRIPT") return;
-      contentDiv.appendChild(document.importNode(node, true));
+    /* BODY CONTENT (NO SCRIPTS) */
+    [...doc.body.children].forEach(el => {
+      if (el.tagName !== "SCRIPT") {
+        contentDiv.appendChild(document.importNode(el, true));
+      }
     });
 
-    // Styles
+    /* STYLES */
     doc.querySelectorAll("style").forEach(s => {
       const ns = document.createElement("style");
       ns.textContent = s.textContent;
       document.head.appendChild(ns);
     });
 
-    doc.querySelectorAll('link[rel="stylesheet"]').forEach(link => {
+    doc.querySelectorAll('link[rel="stylesheet"]').forEach(l => {
+      const href = resolvePath(pagePath, l.getAttribute("href"));
+      if (!href) return;
       const nl = document.createElement("link");
       nl.rel = "stylesheet";
-      nl.href = baseRawURL + resolvePath(pagePath, link.getAttribute("href"));
+      nl.href = baseRawURL + href;
       document.head.appendChild(nl);
     });
 
-    // Scripts
-    doc.querySelectorAll("script").forEach(script => {
-      const ns = document.createElement("script");
-      if (script.src) {
-        ns.src = baseRawURL + resolvePath(pagePath, script.getAttribute("src"));
+    /* SCRIPTS (SAFE, NO < CRASH) */
+    doc.querySelectorAll("script").forEach(s => {
+      if (s.src) {
+        const src = resolvePath(pagePath, s.getAttribute("src"));
+        if (!src) return;
+
+        const fullURL = baseRawURL + src;
+
+        fetch(fullURL).then(r => {
+          const type = r.headers.get("content-type") || "";
+          if (!r.ok || !type.includes("javascript")) {
+            console.warn("Skipped non-JS:", fullURL);
+            return;
+          }
+          const ns = document.createElement("script");
+          ns.src = fullURL;
+          document.body.appendChild(ns);
+        });
+
       } else {
-        ns.textContent = script.textContent;
+        const ns = document.createElement("script");
+        ns.textContent = s.textContent;
+        document.body.appendChild(ns);
       }
-      document.body.appendChild(ns);
     });
 
-    // Images
+    /* IMAGES */
     contentDiv.querySelectorAll("img").forEach(img => {
       const src = img.getAttribute("src");
       if (src && !src.includes("://")) {
@@ -175,35 +198,33 @@ async function loadPage(pagePath) {
       }
     });
 
-    // Links
+    /* LINKS */
     contentDiv.querySelectorAll("a").forEach(a => {
       const href = a.getAttribute("href");
       if (!href || href.includes("://")) return;
 
-      a.addEventListener("click", e => {
+      a.onclick = e => {
         e.preventDefault();
         loadPage(resolvePath(currentPagePath, href));
-      });
+      };
     });
 
-    // Iframes → hosted server
-    contentDiv.querySelectorAll("iframe").forEach(iframe => {
-      const src = iframe.getAttribute("src");
+    /* IFRAMES → RENDER */
+    contentDiv.querySelectorAll("iframe").forEach(f => {
+      const src = f.getAttribute("src");
       if (src && !src.includes("://")) {
-        iframe.src = HOSTED_IFRAME + "/" + resolvePath(currentPagePath, src);
+        f.src = HOSTED_IFRAME + "/" + resolvePath(currentPagePath, src);
       }
     });
 
   } catch (err) {
-    contentDiv.innerHTML = `<pre>Load error: ${err.message}</pre>`;
+    contentDiv.innerHTML = `<pre>LOAD ERROR:\n${err.message}</pre>`;
     console.error(err);
   }
 }
 
-// Start
-loadPage("ub.html");
-</script>
-
+/* ---------- START ---------- */
+loadPage("index.html");
 </script>
 
 
