@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>PGIS-UB </title>
+<title>PGIS-UB -</title>
 <style>
   body { font-family: sans-serif; background: #111; color: #eee; padding: 10px; }
   a { color: #4ea1ff; text-decoration: none; }
@@ -85,7 +85,14 @@
   
 <h1> UB </h1>
 <div id="content">Loading page...</div>
+
 <script>
+function closeUbPopup() {
+    const popup = document.getElementById('ub-popup-overlay');
+    if (popup) popup.remove();
+}
+</script>
+  
 <script>
 const USER = "0800WebDev";
 const REPO = "PGIS";
@@ -181,8 +188,6 @@ async function loadPage(pagePath) {
 
 // start
 loadPage("ub.html");
-</script>
-
 </script>
 
 
